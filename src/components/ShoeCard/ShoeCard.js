@@ -14,18 +14,10 @@ const ShoeCard = ({
   releaseDate,
   numOfColors,
 }) => {
-  // There are 3 variants possible, based on the props:
-  //   - new-release
-  //   - on-sale
-  //   - default
-  //
-  // Any shoe released in the last month will be considered
-  // `new-release`. Any shoe with a `salePrice` will be
-  // on-sale. In theory, it is possible for a shoe to be
-  // both on-sale and new-release, but in this case, `on-sale`
-  // will triumph and be the variant used.
-  // prettier-ignore
-  const variant = typeof salePrice === 'number'
+
+  const isOnSale = typeof salePrice === 'number'; 
+
+  const variant = isOnSale
     ? 'on-sale'
     : isNewShoe(releaseDate)
       ? 'new-release'
@@ -35,15 +27,26 @@ const ShoeCard = ({
     <Link href={`/shoe/${slug}`}>
       <Wrapper>
         <ImageWrapper>
+          {variant === 'on-sale' ? (
+            <SaleFlag>
+              Sale
+            </SaleFlag>
+            ) : 
+            variant === 'new-release' && (
+              <NewFlag>
+                Just Released!
+              </NewFlag>
+            )}
           <Image alt="" src={imageSrc} />
         </ImageWrapper>
         <Spacer size={12} />
         <Row>
           <Name>{name}</Name>
-          <Price>{formatPrice(price)}</Price>
+          <Price isStriked={isOnSale}>{formatPrice(price)}</Price>
         </Row>
         <Row>
           <ColorInfo>{pluralize('Color', numOfColors)}</ColorInfo>
+          {isOnSale && (<SalePrice>{formatPrice(salePrice)}</SalePrice>)}
         </Row>
       </Wrapper>
     </Link>
@@ -61,10 +64,37 @@ const ImageWrapper = styled.div`
   position: relative;
 `;
 
-const Image = styled.img``;
+const Flag = styled.div`
+  position: absolute;
+  top: 12px;
+  right: -4px;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  padding-inline: 10px;
+  border-radius: 2px;
+  color: ${COLORS.white};
+  font-size: ${14 / 16}rem;
+  font-weight: ${WEIGHTS.bold};
+`;
+
+const SaleFlag = styled(Flag)`
+  background-color: ${COLORS.primary};
+`;
+const NewFlag = styled(Flag)`
+  background-color: ${COLORS.secondary};
+`;
+
+const Image = styled.img`
+  width: 100%;
+  line-height: 0;
+  border-radius: 16px 16px 4px 4px;
+`;
 
 const Row = styled.div`
   font-size: 1rem;
+  display: flex;
+  justify-content: space-between;
 `;
 
 const Name = styled.h3`
@@ -72,7 +102,10 @@ const Name = styled.h3`
   color: ${COLORS.gray[900]};
 `;
 
-const Price = styled.span``;
+const Price = styled.span`
+  text-decoration: ${props => props.isStriked ? 'line-through' : 'none'};
+  color: ${props => props.isStriked ? COLORS.gray[700] : 'inherit'};
+`;
 
 const ColorInfo = styled.p`
   color: ${COLORS.gray[700]};
